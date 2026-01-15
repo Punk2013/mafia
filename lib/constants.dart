@@ -6,7 +6,8 @@ const double fontsizeLarge = 24;
 const double spacing = 5.0;
 const buttonColor = Colors.grey;
 
-int mafiaTalkTime = 30;
+int mafiaTalkTime = 3;
+int playerSpeechTime = 60;
 
 abstract class Texts {
   int number = 1;
@@ -20,6 +21,9 @@ abstract class Texts {
   String get showRole;
   String get mafiaTalk;
   String get wakeUp;
+  String get playerSpeech;
+  String get endSpeech;
+  String get addForVote;
 }
 
 class RuTexts extends Texts {
@@ -64,5 +68,20 @@ class RuTexts extends Texts {
   @override
   String get wakeUp {
     return "Город просыпается";
+  }
+
+  @override
+  String get playerSpeech {
+    return "Речь игрока $number";
+  }
+
+  @override
+  String get endSpeech {
+    return "Закончить";
+  }
+
+  @override 
+  String get addForVote {
+    return "Выставить";
   }
 }

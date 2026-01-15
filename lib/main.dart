@@ -38,7 +38,8 @@ enum GameScreenEnum {
   homescreen,
   getRoles,
   mafiaTalk,
-  wakeUp;
+  wakeUp,
+  speeches;
 
   GameScreenEnum get next {
     final values = GameScreenEnum.values;
@@ -68,7 +69,15 @@ class _GameState extends State<Game> {
       case GameScreenEnum.mafiaTalk:
         return Talk(text: texts.mafiaTalk, time: mafiaTalkTime, goNext: _setNextScreen);
       case GameScreenEnum.wakeUp:
-        return CenterButton(onPressed: _setNextScreen, text: texts.wakeUp);
+        return CenterButton(
+          onPressed: () {
+            context.read<GameLogic>().startDay();
+            _setNextScreen();
+          },
+          text: texts.wakeUp,
+        );
+      case GameScreenEnum.speeches:
+        return Speeches(goNext: _setNextScreen, time: playerSpeechTime);
     }
   }
 }
@@ -170,6 +179,19 @@ class _TalkState extends State<Talk> {
   Timer? _timer;
   int _secondsRemaining = 30;
   bool _isRunning = false;
+  
+  @override
+  void didUpdateWidget(Talk oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _timer?.cancel();
+    _isRunning = false;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   void startTimer() {
     if (_isRunning) return;
@@ -213,6 +235,67 @@ class _TalkState extends State<Talk> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class Speeches extends StatefulWidget {
+  const Speeches({super.key, required this.goNext, required this.time});
+  final VoidCallback goNext;
+  final int time;
+
+  @override
+  State<Speeches> createState() => _SpeechesState();
+}
+
+class _SpeechesState extends State<Speeches> {
+  int? forVote;
+
+  void _nextPlayer(BuildContext context) {
+    if (forVote != null) {
+      context.read<GameLogic>().addForVote(forVote!);
+      forVote = null;
+    }
+    if (context.read<GameLogic>().allSpeaked()) {
+      widget.goNext();
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    texts.number = context.read<GameLogic>().nextToSpeak;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Talk(
+            goNext: () => _nextPlayer(context),
+            text: texts.playerSpeech,
+            time: widget.time,
+          ),
+          CenterButton(
+            onPressed: () => _nextPlayer(context),
+            text: texts.endSpeech,
+          ),
+          DropdownButton(
+            hint: Text(texts.addForVote, style: TextStyle(fontSize: fontsize)),
+            items: context
+                .read<GameLogic>()
+                .playersNotForVote
+                .map(
+                  (el) => DropdownMenuItem<int>(
+                    value: el,
+                    child: Text(el.toString()),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              forVote = value;
+            },
+          ),
+        ],
       ),
     );
   }

@@ -15,19 +15,43 @@ class GameLogic with ChangeNotifier {
   final int activeCount = 4;
 
   final LinkedHashMap<int, Role> _players = LinkedHashMap();
+
   int _currentDay = 0;
+  int _firstToSpeak = 1;
+  Iterator<int>? _nextToSpeak;
+  int speakedCount = 0;
 
   List<int> _playersForVote = [];
   final LinkedHashMap<int, int> _votes = LinkedHashMap();
   List<int> _playersWonPrevVoting = [];
 
   Role getRole(int playerNum) {
-    assert(_players.keys.contains(playerNum));
+    assert(playersAlive.contains(playerNum));
     return _players[playerNum]!;
   }
 
   int get alive {
     return _players.length;
+  }
+
+  Iterable<int> get playersAlive {
+    return _players.keys;
+  }
+
+  List<int> get playersNotForVote {
+    return playersAlive.where((el) => !_playersForVote.contains(el)).toList();
+  }
+
+  int get nextToSpeak {
+    if (!_nextToSpeak!.moveNext()) {
+      return 0;
+    }
+    speakedCount++;
+    return _nextToSpeak!.current;
+  }
+
+  bool allSpeaked() {
+    return speakedCount == alive;
   }
 
   int get voting {
@@ -67,10 +91,27 @@ class GameLogic with ChangeNotifier {
     _votes.clear();
     _playersWonPrevVoting.clear();
     _currentDay++;
+
+    if (_currentDay != 1) {
+      final playerIt = playersAlive.skipWhile((el) => el <= _firstToSpeak);
+      if (playerIt.isEmpty) {
+        _firstToSpeak = playersAlive.first;
+      } else {
+        _firstToSpeak = playerIt.first;
+      }
+    }
+
+    _nextToSpeak =
+        playersAlive
+            .skipWhile((el) => el != _firstToSpeak)
+            .followedBy(playersAlive.takeWhile((el) => el != _firstToSpeak))
+            .iterator;
+    speakedCount = 0;
   }
 
   void addForVote(int playerNum) {
     _playersForVote.add(playerNum);
+    debugPrint("$_playersForVote");
   }
 
   List<int> get playersForVote {
