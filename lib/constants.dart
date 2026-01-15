@@ -11,6 +11,7 @@ int playerSpeechTime = 60;
 
 abstract class Texts {
   int number = 1;
+  int? number2;
   String str = '';
 
   String role(Role role);
@@ -82,6 +83,10 @@ class RuTexts extends Texts {
 
   @override 
   String get addForVote {
-    return "Выставить";
+    if (number2 == null) {
+      return "Выставить";
+    } else {
+      return "Выставить(выбран $number2)";
+    }
   }
 }

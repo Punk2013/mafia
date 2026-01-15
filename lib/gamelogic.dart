@@ -19,7 +19,6 @@ class GameLogic with ChangeNotifier {
   int _currentDay = 0;
   int _firstToSpeak = 1;
   Iterator<int>? _nextToSpeak;
-  int speakedCount = 0;
 
   List<int> _playersForVote = [];
   final LinkedHashMap<int, int> _votes = LinkedHashMap();
@@ -42,16 +41,12 @@ class GameLogic with ChangeNotifier {
     return playersAlive.where((el) => !_playersForVote.contains(el)).toList();
   }
 
-  int get nextToSpeak {
-    if (!_nextToSpeak!.moveNext()) {
-      return 0;
-    }
-    speakedCount++;
+  int get personToSpeak {
     return _nextToSpeak!.current;
   }
 
-  bool allSpeaked() {
-    return speakedCount == alive;
+  bool changeSpeaker() {
+    return _nextToSpeak!.moveNext();
   }
 
   int get voting {
@@ -105,8 +100,8 @@ class GameLogic with ChangeNotifier {
         playersAlive
             .skipWhile((el) => el != _firstToSpeak)
             .followedBy(playersAlive.takeWhile((el) => el != _firstToSpeak))
-            .iterator;
-    speakedCount = 0;
+            .iterator
+          ..moveNext();
   }
 
   void addForVote(int playerNum) {
@@ -162,6 +157,7 @@ class GameLogic with ChangeNotifier {
           return VotingResult.cancel;
         }
         _playersWonPrevVoting = [...playersWithMaxVotes];
+        _playersForVote = [...playersWithMaxVotes];
         return VotingResult.voteKillAll;
       } else {
         _votes.clear();

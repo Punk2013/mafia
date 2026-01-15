@@ -166,10 +166,11 @@ class CenterButton extends StatelessWidget {
 }
 
 class TimerWidget extends StatefulWidget {
-  const TimerWidget({super.key, required this.text, required this.time, required this.goNext});
+  const TimerWidget({super.key, required this.text, required this.time, required this.goNext, this.resetTimer=false});
   final String text;
   final int time;
   final VoidCallback goNext;
+  final bool resetTimer;
 
   @override
   State<TimerWidget> createState() => _TimerWidgetState();
@@ -183,8 +184,10 @@ class _TimerWidgetState extends State<TimerWidget> {
   @override
   void didUpdateWidget(TimerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _timer?.cancel();
-    _isRunning = false;
+    if (widget.resetTimer) { 
+      _timer?.cancel();
+      _isRunning = false;
+    }
   }
 
   @override
@@ -251,41 +254,45 @@ class Speeches extends StatefulWidget {
 
 class _SpeechesState extends State<Speeches> {
   int? forVote;
+  bool resetTimer = false;
 
   void _nextPlayer(BuildContext context) {
     if (forVote != null) {
       context.read<GameLogic>().addForVote(forVote!);
       forVote = null;
     }
-    if (context.read<GameLogic>().allSpeaked()) {
+    if (!context.read<GameLogic>().changeSpeaker()) {
       widget.goNext();
     }
-    setState(() {});
+    setState(() {
+      resetTimer = true;
+    });
+  }
+
+  void _changeForVote(int? value) {
+    setState(() {
+      resetTimer = false;
+      forVote = value;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    texts.number = context.read<GameLogic>().nextToSpeak;
+    texts.number = context.read<GameLogic>().personToSpeak;
+    texts.number2 = forVote;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Talk(time: widget.time, goNext: () => _nextPlayer(context)),
-          DropdownButton(
-            hint: Text(texts.addForVote, style: TextStyle(fontSize: fontsize)),
-            items: context
-                .read<GameLogic>()
-                .playersNotForVote
-                .map(
-                  (el) => DropdownMenuItem<int>(
-                    value: el,
-                    child: Text(el.toString()),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              forVote = value;
-            },
+          Talk(
+            time: widget.time,
+            goNext: () => _nextPlayer(context),
+            resetTimer: resetTimer,
+          ),
+          NumberDropdown(
+            hint: texts.addForVote,
+            items: context.read<GameLogic>().playersNotForVote,
+            onChanged: _changeForVote,
           ),
         ],
       ),
@@ -293,9 +300,31 @@ class _SpeechesState extends State<Speeches> {
   }
 }
 
+class NumberDropdown extends StatelessWidget {
+  const NumberDropdown({super.key, required this.hint, required this.items, required this.onChanged});
+  final String hint;
+  final List<int> items;
+  final void Function(int?) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton(
+      hint: Text(hint, style: TextStyle(fontSize: fontsize)),
+      items: items
+          .map(
+            (el) =>
+                DropdownMenuItem<int>(value: el, child: Text(el.toString())),
+          )
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
+}
+
 class Talk extends StatefulWidget {
-  const Talk({super.key, required this.time, required this.goNext});
+  const Talk({super.key, required this.time, required this.goNext, this.resetTimer=false});
   final int time;
+  final bool resetTimer;
   final VoidCallback goNext;
 
   @override
@@ -312,6 +341,7 @@ class _TalkState extends State<Talk> {
             goNext: widget.goNext,
             text: texts.playerSpeech,
             time: widget.time,
+            resetTimer: widget.resetTimer,
           ),
           CenterButton(
             onPressed: widget.goNext,
