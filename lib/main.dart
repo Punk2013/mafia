@@ -22,7 +22,7 @@ class MafiaApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.black)
       ),
-      home: Game()
+      home: Scaffold(body: Game()),
     );
   }
 }
@@ -139,18 +139,16 @@ class CenterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: GestureDetector(
-          onTap: onPressed,
-          child: Container(
-            width: 400,
-            height: 300,
-            alignment: Alignment.center,
-            color: Colors.grey,
-            child: Center(
-              child: Text(text, style: const TextStyle(fontSize: fontsize)),
-            ),
+    return Center(
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 400,
+          height: 300,
+          alignment: Alignment.center,
+          color: Colors.grey,
+          child: Center(
+            child: Text(text, style: const TextStyle(fontSize: fontsize)),
           ),
         ),
       ),
@@ -182,38 +180,38 @@ class _TalkState extends State<Talk> {
     });
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_secondsRemaining > 0) {
-          _secondsRemaining--;
-        } else {
-          _timer?.cancel();
-          widget.goNext();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (_secondsRemaining > 0) {
+            _secondsRemaining--;
+          } else {
+            _timer?.cancel();
+            widget.goNext();
+          }
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     startTimer();
-    return Scaffold(
-      body: Center(
-        child: Container(
-          alignment: Alignment.center,
-          color: Colors.grey,
-          width: 400,
-          height: 300,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: spacing,
-            children: [
-              Text(widget.text, style: TextStyle(fontSize: fontsize)),
-              Text(
-                _secondsRemaining.toString(),
-                style: TextStyle(fontSize: fontsizeLarge),
-              ),
-            ],
-          ),
+    return Center(
+      child: Container(
+        alignment: Alignment.center,
+        color: Colors.grey,
+        width: 400,
+        height: 300,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: spacing,
+          children: [
+            Text(widget.text, style: TextStyle(fontSize: fontsize)),
+            Text(
+              _secondsRemaining.toString(),
+              style: TextStyle(fontSize: fontsizeLarge),
+            ),
+          ],
         ),
       ),
     );
