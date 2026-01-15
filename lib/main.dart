@@ -67,7 +67,7 @@ class _GameState extends State<Game> {
       case GameScreenEnum.getRoles:
         return GetRoles(goNext: _setNextScreen);
       case GameScreenEnum.mafiaTalk:
-        return Talk(text: texts.mafiaTalk, time: mafiaTalkTime, goNext: _setNextScreen);
+        return TimerWidget(text: texts.mafiaTalk, time: mafiaTalkTime, goNext: _setNextScreen);
       case GameScreenEnum.wakeUp:
         return CenterButton(
           onPressed: () {
@@ -165,23 +165,23 @@ class CenterButton extends StatelessWidget {
   }
 }
 
-class Talk extends StatefulWidget {
-  const Talk({super.key, required this.text, required this.time, required this.goNext});
+class TimerWidget extends StatefulWidget {
+  const TimerWidget({super.key, required this.text, required this.time, required this.goNext});
   final String text;
   final int time;
   final VoidCallback goNext;
 
   @override
-  State<Talk> createState() => _TalkState();
+  State<TimerWidget> createState() => _TimerWidgetState();
 }
 
-class _TalkState extends State<Talk> {
+class _TimerWidgetState extends State<TimerWidget> {
   Timer? _timer;
   int _secondsRemaining = 30;
   bool _isRunning = false;
   
   @override
-  void didUpdateWidget(Talk oldWidget) {
+  void didUpdateWidget(TimerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _timer?.cancel();
     _isRunning = false;
@@ -270,15 +270,7 @@ class _SpeechesState extends State<Speeches> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Talk(
-            goNext: () => _nextPlayer(context),
-            text: texts.playerSpeech,
-            time: widget.time,
-          ),
-          CenterButton(
-            onPressed: () => _nextPlayer(context),
-            text: texts.endSpeech,
-          ),
+          Talk(time: widget.time, goNext: () => _nextPlayer(context)),
           DropdownButton(
             hint: Text(texts.addForVote, style: TextStyle(fontSize: fontsize)),
             items: context
@@ -298,5 +290,34 @@ class _SpeechesState extends State<Speeches> {
         ],
       ),
     );
+  }
+}
+
+class Talk extends StatefulWidget {
+  const Talk({super.key, required this.time, required this.goNext});
+  final int time;
+  final VoidCallback goNext;
+
+  @override
+  State<Talk> createState() => _TalkState();
+}
+
+class _TalkState extends State<Talk> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TimerWidget(
+            goNext: widget.goNext,
+            text: texts.playerSpeech,
+            time: widget.time,
+          ),
+          CenterButton(
+            onPressed: widget.goNext,
+            text: texts.endSpeech,
+          ),
+        ],
+      );
   }
 }
