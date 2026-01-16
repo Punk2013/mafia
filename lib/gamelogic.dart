@@ -29,6 +29,28 @@ class GameLogic with ChangeNotifier {
     return _players[playerNum]!;
   }
 
+  Iterator<int> get playersToVoteFor {
+    return _playersForVote.take(_playersForVote.length - 1).iterator
+      ..moveNext();
+  }
+
+
+  PrevoteResult prevote() {
+    if (playersForVote.isEmpty) {
+      return PrevoteResult.cancel;
+    } else if (playersForVote.length == 1) {
+      if (_currentDay == 1) {
+        return PrevoteResult.cancel;
+      }
+      final player = playersForVote[0];
+      _playersWonPrevVoting = [player];
+      kill(player);
+      return PrevoteResult.killedOne;
+    } else {
+      return PrevoteResult.needVote;
+    }
+  }
+
   int get alive {
     return _players.length;
   }
@@ -55,6 +77,10 @@ class GameLogic with ChangeNotifier {
 
   void kill(int playerNum) {
     _players.remove(playerNum);
+  }
+
+  int get killed {
+    return _playersWonPrevVoting[0];
   }
 
   void genRoles() {
@@ -118,11 +144,26 @@ class GameLogic with ChangeNotifier {
   }
 
   void calculateVotesForLastPlayer() {
-    _votes[_playersForVote.last] =
-        voting - _votes.values.reduce((value, element) => value + element);
+    _votes[_playersForVote.last] = votesLeft;
+  }
+
+  int get votesLeft {
+    if (_votes.values.isEmpty) {
+      return voting;
+    }
+    return voting - _votes.values.reduce((value, element) => value + element);
+  }
+
+  void setLeftCandidatesZeroVotes() {
+    for (final candidate in playersForVote) {
+      if (!_votes.containsKey(candidate)) {
+        _votes[candidate] = 0;
+      }
+    }
   }
 
   VotingResult votingResult() {
+    debugPrint("$_votes");
     if (_playersForVote.isEmpty) {
       return VotingResult.cancel;
     }
@@ -147,6 +188,7 @@ class GameLogic with ChangeNotifier {
 
     if (playersWithMaxVotes.length == 1) {
       kill(playersWithMaxVotes[0]);
+      _playersWonPrevVoting = [...playersWithMaxVotes];
       return VotingResult.killed;
     } else {
       if (listEquals(playersWithMaxVotes, _playersWonPrevVoting)) {
@@ -181,9 +223,5 @@ class GameLogic with ChangeNotifier {
   }
 }
 
-enum VotingResult {
-  cancel,
-  killed,
-  revote,
-  voteKillAll;
-}
+enum VotingResult { cancel, killed, revote, voteKillAll }
+enum PrevoteResult { cancel, needVote, killedOne }

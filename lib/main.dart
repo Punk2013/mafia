@@ -39,7 +39,10 @@ enum GameScreenEnum {
   getRoles,
   mafiaTalk,
   wakeUp,
-  speeches;
+  speeches,
+  votes,
+  playerKilled,
+  nightStarts;
 
   GameScreenEnum get next {
     final values = GameScreenEnum.values;
@@ -56,6 +59,12 @@ class _GameState extends State<Game> {
   void _setNextScreen() {
     setState(() {
       _screen = _screen.next;
+    });
+  }
+
+  void _setScreen(GameScreenEnum screen) {
+    setState(() {
+      _screen = screen;
     });
   }
 
@@ -77,7 +86,46 @@ class _GameState extends State<Game> {
           text: texts.wakeUp,
         );
       case GameScreenEnum.speeches:
-        return Speeches(goNext: _setNextScreen, time: playerSpeechTime);
+        return Speeches(
+          goNext: () {
+            switch (context.read<GameLogic>().prevote()) {
+              case (PrevoteResult.cancel):
+                _setScreen(GameScreenEnum.nightStarts);
+              case (PrevoteResult.killedOne):
+                texts.number = context.read<GameLogic>().killed;
+                _setScreen(GameScreenEnum.playerKilled);
+              case (PrevoteResult.needVote):
+                _setScreen(GameScreenEnum.votes);
+            }
+          },
+          time: playerSpeechTime,
+        );
+      case GameScreenEnum.votes:
+        return Voting(
+          goNext: () {
+            switch (context.read<GameLogic>().votingResult()) {
+              case VotingResult.cancel:
+                _setScreen(GameScreenEnum.nightStarts);
+              case VotingResult.killed:
+                texts.number = context.read<GameLogic>().killed;
+                _setScreen(GameScreenEnum.playerKilled);
+              case VotingResult.revote:
+                _setScreen(GameScreenEnum.nightStarts); // placeholder
+              case VotingResult.voteKillAll:
+                _setScreen(GameScreenEnum.nightStarts); // placeholder
+            }
+          },
+        );
+      case GameScreenEnum.playerKilled:
+        return CenterButton(
+          onPressed: () => _setScreen(GameScreenEnum.nightStarts),
+          text: texts.playerKilled,
+        );
+      case GameScreenEnum.nightStarts:
+        return CenterButton(
+          onPressed: () => _setNextScreen,
+          text: texts.nightStarts,
+        );
     }
   }
 }
@@ -349,5 +397,68 @@ class _TalkState extends State<Talk> {
           ),
         ],
       );
+  }
+}
+
+class Voting extends StatefulWidget {
+  const Voting({super.key, required this.goNext});
+  final VoidCallback goNext;
+
+  @override
+  State<Voting> createState() => _VotingState();
+}
+
+class _VotingState extends State<Voting> {
+  int? _curVotes;
+  Iterator<int>? _playersToVoteFor;
+  bool running = false;
+
+  void _changeVotesCount(int? value) {
+    setState(() {
+    _curVotes = value;
+    });
+  }
+
+  void _nextCandidate(int playerNum) {
+    if (_curVotes != null) {
+      context.read<GameLogic>().inputVotesForPlayer(playerNum, _curVotes!);
+
+      if (context.read<GameLogic>().votesLeft == 0) {
+        context.read<GameLogic>().setLeftCandidatesZeroVotes();
+        widget.goNext();
+        return;
+      }
+      if (_playersToVoteFor!.moveNext()) {
+        setState(() {
+          _curVotes = null;
+        });
+      } else {
+        context.read<GameLogic>().calculateVotesForLastPlayer();
+        widget.goNext();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!running) {
+      _playersToVoteFor = context.read<GameLogic>().playersToVoteFor;
+      running = true;
+    }
+    final playerNum = _playersToVoteFor!.current;
+    texts.number = playerNum;
+    texts.number2 = _curVotes;
+    return Column(
+      children: [
+        NumberDropdown(
+          hint: texts.inputVotes,
+          items: [
+            for (int i = 0; i <= context.read<GameLogic>().votesLeft; i++) i,
+          ],
+          onChanged: _changeVotesCount,
+        ),
+        CenterButton(text: texts.next, onPressed: () => _nextCandidate(playerNum)),
+      ],
+    );
   }
 }

@@ -6,7 +6,7 @@ const double fontsizeLarge = 24;
 const double spacing = 5.0;
 const buttonColor = Colors.grey;
 
-int mafiaTalkTime = 3;
+int mafiaTalkTime = 1;
 int playerSpeechTime = 60;
 
 abstract class Texts {
@@ -25,6 +25,10 @@ abstract class Texts {
   String get playerSpeech;
   String get endSpeech;
   String get addForVote;
+  String get inputVotes;
+  String get next;
+  String get playerKilled;
+  String get nightStarts;
 }
 
 class RuTexts extends Texts {
@@ -88,5 +92,29 @@ class RuTexts extends Texts {
     } else {
       return "Выставить(выбран $number2)";
     }
+  }
+
+  @override
+  String get inputVotes {
+    if (number2 == null) {
+      return "Введите количество голосов за игрока $number";
+    } else {
+      return "Введите количество голосов за игрока $number(выбрано $number2)";
+    }
+  }
+
+  @override
+  String get next {
+    return "Далее";
+  }
+
+  @override
+  String get playerKilled {
+    return "Игрок $number убит";
+  }
+
+  @override 
+  String get nightStarts {
+    return "Город засыпает";
   }
 }
