@@ -130,12 +130,17 @@ class GameLogic with ChangeNotifier {
   }
 
   bool get wasMurdered {
-    assert(_mafiaPick != null);
-    return _mafiaPick != 0;
+    if (_currentDay != 0) {
+      assert(_mafiaPick != null);
+      return _mafiaPick != 0;
+    } else {
+      return false;
+    }
   }
 
   int get personMurdered {
     assert(_mafiaPick != null);
+    kill(_mafiaPick!);
     return _mafiaPick!;
   }
 

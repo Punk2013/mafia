@@ -30,6 +30,14 @@ class MafiaApp extends StatelessWidget {
         '/wakeUp': (context) => Scaffold(
           body: CenterButton(
             onPressed: () {
+              if (context.read<GameLogic>().wasMurdered) {
+                final int murdered = context.read<GameLogic>().personMurdered;
+                texts.number = murdered;
+                texts.numbers = [murdered];
+                context.read<GameLogic>().startDay();
+                Navigator.pushReplacementNamed(context, '/playerMurdered');
+                return;
+              }
               context.read<GameLogic>().startDay();
               Navigator.pushReplacementNamed(context, '/speeches');
             },
@@ -50,8 +58,10 @@ class MafiaApp extends StatelessWidget {
         '/nightStarts': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/nightPicking'), text: texts.nightStarts)),
         '/revote': (context) => Speeches(time: revoteSpeechTime, pushForVote: false),
         '/voteKillAll': (context) => VoteKillAll(),
-        '/killedSpeeches': (context) => Speeches(time: playerSpeechTime, pushForVote: false, nextScreen: '/nightStarts'),
+        '/killedSpeeches': (context) => Speeches(time: killedSpeechTime, pushForVote: false, nextScreen: '/nightStarts'),
         '/nightPicking': (context) => NightPicking(),
+        '/playerMurdered': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/talk'), text: texts.playersKilled)),
+        '/talk': (context) => Scaffold(body: Talk(onFinished: () => Navigator.pushReplacementNamed(context, '/speeches'), time: killedSpeechTime))
       },
     );
   }

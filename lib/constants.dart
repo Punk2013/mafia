@@ -8,6 +8,7 @@ const buttonColor = Colors.grey;
 
 int mafiaTalkTime = 1;
 int playerSpeechTime = 60;
+int killedSpeechTime = 60;
 int revoteSpeechTime = 30;
 
 abstract class Texts {
