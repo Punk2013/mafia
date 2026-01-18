@@ -29,10 +29,9 @@ abstract class Texts {
   String get addForVote;
   String get inputVotes;
   String get next;
-  String get playerKilled;
+  String get playersKilled;
   String get nightStarts;
   String get whoForKillAll;
-  String get multiplePlayersKilled;
 }
 
 class RuTexts extends Texts {
@@ -113,8 +112,13 @@ class RuTexts extends Texts {
   }
 
   @override
-  String get playerKilled {
-    return "Игрок $number убит";
+  String get playersKilled {
+    assert(numbers != null);
+    if (numbers!.length == 1) {
+      return "Игрок ${numbers![0]} убит";
+    } else {
+      return "Игроки ${numbers!.join(', ')} убиты";
+    }
   }
 
   @override 
@@ -129,10 +133,5 @@ class RuTexts extends Texts {
     } else {
       return "Голосов за то, чтобы убрать всех(выбрано $number2)";
     }
-  }
-
-  @override
-  String get multiplePlayersKilled {
-    return "Игроки ${numbers!.join(', ')} убиты";
   }
 }

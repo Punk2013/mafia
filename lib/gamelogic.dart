@@ -83,8 +83,8 @@ class GameLogic with ChangeNotifier {
     debugPrint("$_players");
   }
 
-  int get killed {
-    return _playersWonPrevVoting[0];
+  List<int> get killed {
+    return _playersWonPrevVoting;
   }
 
   void genRoles() {

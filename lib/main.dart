@@ -38,18 +38,19 @@ class MafiaApp extends StatelessWidget {
         ),
         '/speeches': (context) => Speeches(time: playerSpeechTime),
         '/votes': (context) => Voting(),
-        '/playerKilled': (context) {
-          texts.number = context.read<GameLogic>().killed;
+        '/playersKilled': (context) {
+          texts.numbers = context.read<GameLogic>().killed;
           return Scaffold(
             body: CenterButton(
-              onPressed: () => Navigator.pushReplacementNamed(context, '/nightStarts'),
-              text: texts.playerKilled,
+              onPressed: () => Navigator.pushReplacementNamed(context, '/killedSpeeches'),
+              text: texts.playersKilled,
             ),
           );
         },
         '/nightStarts': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/homescreen'), text: texts.nightStarts)),
         '/revote': (context) => Speeches(time: revoteSpeechTime, pushForVote: false),
         '/voteKillAll': (context) => VoteKillAll(),
+        '/killedSpeeches': (context) => Speeches(time: playerSpeechTime, pushForVote: false, nextScreen: '/nightStarts')
       },
     );
   }
@@ -113,9 +114,15 @@ class _GetRolesState extends State<GetRoles> {
 }
 
 class Speeches extends StatefulWidget {
-  const Speeches({super.key, required this.time, this.pushForVote = true});
+  const Speeches({
+    super.key,
+    required this.time,
+    this.pushForVote = true,
+    this.nextScreen = '/votes',
+  });
   final int time;
   final bool pushForVote;
+  final String nextScreen;
 
   @override
   State<Speeches> createState() => _SpeechesState();
@@ -138,12 +145,12 @@ class _SpeechesState extends State<Speeches> {
           case (PrevoteResult.cancel):
             Navigator.pushReplacementNamed(context, '/nightStarts');
           case (PrevoteResult.killedOne):
-            Navigator.pushReplacementNamed(context, '/playerKilled');
+            Navigator.pushReplacementNamed(context, '/playersKilled');
           case (PrevoteResult.needVote):
             Navigator.pushReplacementNamed(context, '/votes');
         }
       } else {
-        Navigator.pushReplacementNamed(context, '/votes');
+        Navigator.pushReplacementNamed(context, widget.nextScreen);
       }
       return;
     }
@@ -206,7 +213,7 @@ class _VotingState extends State<Voting> {
         case VotingResult.cancel:
           Navigator.pushReplacementNamed(context, '/nightStarts');
         case VotingResult.killed:
-          Navigator.pushReplacementNamed(context, '/playerKilled');
+          Navigator.pushReplacementNamed(context, '/playersKilled');
         case VotingResult.revote:
           Navigator.pushReplacementNamed(context, '/revote');
         case VotingResult.voteKillAll:
@@ -275,15 +282,12 @@ class VoteKillAll extends StatefulWidget {
 
 class _VoteKillAllState extends State<VoteKillAll> {
   int? _votesForKillAll;
-  bool _showKilled = false;
 
   void _onPressed() {
     if (_votesForKillAll != null) {
       final res = context.read<GameLogic>().votingKillAllResult(_votesForKillAll!);
       if (res == VotingResult.killed) {
-        setState(() {
-          _showKilled = true;
-        });
+        Navigator.pushReplacementNamed(context, '/playersKilled');
       } else {
         Navigator.pushReplacementNamed(context, '/nightStarts');
       }
@@ -292,10 +296,6 @@ class _VoteKillAllState extends State<VoteKillAll> {
 
   @override
   Widget build(BuildContext context) {
-    if (_showKilled) {
-      texts.numbers = context.read<GameLogic>().playersForVote;
-      return Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/nightStarts'), text: texts.multiplePlayersKilled));
-    }
     texts.number2 = _votesForKillAll;
     return Scaffold( 
       body: Column(
