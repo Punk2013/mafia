@@ -32,6 +32,12 @@ abstract class Texts {
   String get playersKilled;
   String get nightStarts;
   String get whoForKillAll;
+  String get pickPlayer;
+  String get checkForCommissar;
+  String get isCommissar;
+  String get isNotCommissar;
+  String get isMafia;
+  String get isNotMafia;
 }
 
 class RuTexts extends Texts {
@@ -133,5 +139,40 @@ class RuTexts extends Texts {
     } else {
       return "Голосов за то, чтобы убрать всех(выбрано $number2)";
     }
+  }
+
+  @override
+  String get pickPlayer {
+    if (number2 == null) {
+      return "Игрок $number, выберете одного игрока";
+    } else {
+      return "Игрок $number, выберете одного игрока(выбран $number2)";
+    }
+  }
+
+  @override
+  String get checkForCommissar {
+    if (number2 == null) {
+      return "Выберете игрока для проверки";
+    } else {
+      return "Выберете игрока для проверки(выбран $number2)";
+    }
+  }
+
+  @override
+  String get isCommissar {
+    return "Игрок $number комиссар";
+  }
+  @override
+  String get isNotCommissar {
+    return "Игрок $number не комиссар";
+  }
+  @override
+  String get isMafia {
+    return "Игрок $number мафия";
+  }
+  @override
+  String get isNotMafia {
+    return "Игрок $number не мафия";
   }
 }

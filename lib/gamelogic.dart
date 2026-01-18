@@ -76,7 +76,7 @@ class GameLogic with ChangeNotifier {
     }
   }
 
-  Iterator<int> playersToPick() {
+  Iterator<int> get playersToPick {
     late int firstToPick;
     final playerIt = playersAlive.skipWhile((el) => el < _firstToSpeak);
     if (playerIt.isEmpty) {
@@ -92,6 +92,10 @@ class GameLogic with ChangeNotifier {
       ..moveNext();
   }
 
+  List<int> get pickList {
+    return _players.keys.toList();
+  }
+
   PickResult inputPick(int player, int playerPicked, [bool donIsPicking=false]) {
     final role = _players[player];
     final checkedRole = _players[playerPicked];
@@ -103,23 +107,25 @@ class GameLogic with ChangeNotifier {
       if (checkedRole == Role.commissar) {
         return PickResult.commissar;
       }
-      return PickResult.passive;
+      return PickResult.notCommissar;
     }
     if (role == Role.commissar) {
       if (checkedRole == Role.mafia || checkedRole == Role.don) {
         return PickResult.mafia;
       }
-      return PickResult.civilian;
+      return PickResult.notMafia;
     } else {
       if (_mafiaPick == null) {
         _mafiaPick = playerPicked;
-        return PickResult.none;
       } 
-      if (_mafiaPick != playerPicked) {
+      else if (_mafiaPick != playerPicked) {
         _mafiaPick = 0;
+      }
+      if (role == Role.don) {
+        return PickResult.donPick;
+      } else {
         return PickResult.none;
       }
-      return PickResult.none;
     }
   }
 
@@ -284,4 +290,4 @@ class GameLogic with ChangeNotifier {
 
 enum VotingResult { cancel, killed, revote, voteKillAll }
 enum PrevoteResult { cancel, needVote, killedOne }
-enum PickResult {none, donPick, commissar, passive, mafia, civilian}
+enum PickResult {none, donPick, commissar, notCommissar, mafia, notMafia}

@@ -47,10 +47,11 @@ class MafiaApp extends StatelessWidget {
             ),
           );
         },
-        '/nightStarts': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/homescreen'), text: texts.nightStarts)),
+        '/nightStarts': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/nightPicking'), text: texts.nightStarts)),
         '/revote': (context) => Speeches(time: revoteSpeechTime, pushForVote: false),
         '/voteKillAll': (context) => VoteKillAll(),
-        '/killedSpeeches': (context) => Speeches(time: playerSpeechTime, pushForVote: false, nextScreen: '/nightStarts')
+        '/killedSpeeches': (context) => Speeches(time: playerSpeechTime, pushForVote: false, nextScreen: '/nightStarts'),
+        '/nightPicking': (context) => NightPicking(),
       },
     );
   }
@@ -311,5 +312,86 @@ class _VoteKillAllState extends State<VoteKillAll> {
         CenterButton(onPressed: _onPressed, text: texts.next)
       ],
     ));
+  }
+}
+
+class NightPicking extends StatefulWidget {
+  const NightPicking({super.key});
+
+  @override
+  State<NightPicking> createState() => _NightPickingState();
+}
+
+class _NightPickingState extends State<NightPicking> {
+  int? _picked;
+  Iterator<int>? _playersToPick;
+  int _currentPlayer = 0;
+  bool _running = false;
+  bool _donIsPicking = false;
+
+  void _nextPick() {
+    if (_picked == null) {
+      return;
+    }
+    final res = context.read<GameLogic>().inputPick(_currentPlayer, _picked!, _donIsPicking);
+    _donIsPicking = false;
+    switch (res) {
+      case PickResult.none:
+        break;
+      case PickResult.donPick:
+        _donIsPicking = true;
+      case PickResult.commissar:
+        texts.number = _picked!;
+        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isCommissar, onPressed: () => Navigator.pop(context)))));
+      case PickResult.notCommissar:
+        texts.number = _picked!;
+        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isNotCommissar, onPressed: () => Navigator.pop(context)))));
+      case PickResult.mafia:
+        texts.number = _picked!;
+        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isMafia, onPressed: () => Navigator.pop(context)))));
+      case PickResult.notMafia:
+        texts.number = _picked!;
+        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isNotMafia, onPressed: () => Navigator.pop(context)))));
+    }
+    if (_donIsPicking) {
+      setState(() {
+        _picked = null;
+        _running = true;
+      });
+      return;
+    }
+    if (!_playersToPick!.moveNext()) {
+      Navigator.pushReplacementNamed(context, '/wakeUp');
+      _running = false;
+    } else {
+      setState((){
+        _picked = null;
+        _running = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_running) {
+      _playersToPick = context.read<GameLogic>().playersToPick;
+      _running = true;
+    }
+    _currentPlayer = _playersToPick!.current;
+    texts.number = _currentPlayer;
+    texts.number2 = _picked;
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          NumberDropdown(
+            hint: _donIsPicking ? texts.checkForCommissar : texts.pickPlayer,
+            items: context.read<GameLogic>().pickList,
+            onChanged: (value) => setState(() => _picked = value),
+          ),
+          CenterButton(onPressed: _nextPick, text: texts.next),
+        ],
+      ),
+    );
   }
 }
