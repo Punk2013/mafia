@@ -210,6 +210,8 @@ class GameLogic with ChangeNotifier {
         _votes.clear();
         _playersWonPrevVoting = [...playersWithMaxVotes];
         _playersForVote = [...playersWithMaxVotes];
+        initRevote();
+        debugPrint("$_playersWonPrevVoting");
         return VotingResult.revote;
       }
     }

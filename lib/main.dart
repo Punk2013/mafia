@@ -22,141 +22,50 @@ class MafiaApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.black)
       ),
-      home: Scaffold(body: Game()),
+      initialRoute: '/homescreen',
+      routes: {
+        '/homescreen': (context) => Homescreen(),
+        '/getRoles': (context) => GetRoles(),
+        '/mafiaTalk': (context) => Scaffold(body: TimerWidget(goNext: '/wakeUp', text: texts.mafiaTalk, time: mafiaTalkTime)),
+        '/wakeUp': (context) => Scaffold(body: CenterButton(onPressed: () => context.read<GameLogic>().startDay(), goNext: '/speeches', text: texts.wakeUp)),
+        '/speeches': (context) => Speeches(time: playerSpeechTime),
+        '/votes': (context) => Voting(),
+        '/playerKilled': (context) {
+          texts.number = context.read<GameLogic>().killed;
+          return Scaffold(
+            body: CenterButton(
+              goNext: '/nightStarts',
+              text: texts.playerKilled,
+            ),
+          );
+        },
+        '/nightStarts': (context) => Scaffold(body: CenterButton(onPressed: () => {}, goNext: '/homescreen', text: texts.nightStarts)),
+        '/revote': (context) => Speeches(time: revoteSpeechTime, pushForVote: false),
+        '/voteKillAll': (context) => VoteKillAll(goNext: '/nightStarts'),
+      },
     );
   }
 }
 
-class Game extends StatefulWidget {
-  const Game({super.key});
-
-  @override
-  State<Game> createState() => _GameState();
-}
-
-enum GameScreenEnum {
-  homescreen,
-  getRoles,
-  mafiaTalk,
-  wakeUp,
-  speeches,
-  votes,
-  playerKilled,
-  nightStarts,
-  revote,
-  voteKillAll;
-
-  GameScreenEnum get next {
-    final values = GameScreenEnum.values;
-    final nextIndex = (index + 1) % values.length;
-    return values[nextIndex];
-  }
-    
-}
-
-class _GameState extends State<Game> {
-  GameScreenEnum _screen = GameScreenEnum.homescreen;
-
-
-  void _setNextScreen() {
-    setState(() {
-      _screen = _screen.next;
-    });
-  }
-
-  void _setScreen(GameScreenEnum screen) {
-    setState(() {
-      _screen = screen;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    switch (_screen) {
-      case GameScreenEnum.homescreen:
-        return Homescreen(goNext: _setNextScreen);
-      case GameScreenEnum.getRoles:
-        return GetRoles(goNext: _setNextScreen);
-      case GameScreenEnum.mafiaTalk:
-        return TimerWidget(text: texts.mafiaTalk, time: mafiaTalkTime, goNext: _setNextScreen);
-      case GameScreenEnum.wakeUp:
-        return CenterButton(
-          onPressed: () {
-            context.read<GameLogic>().startDay();
-            _setNextScreen();
-          },
-          text: texts.wakeUp,
-        );
-      case GameScreenEnum.speeches:
-        return Speeches(
-          goNext: () {
-            switch (context.read<GameLogic>().prevote()) {
-              case (PrevoteResult.cancel):
-                _setScreen(GameScreenEnum.nightStarts);
-              case (PrevoteResult.killedOne):
-                texts.number = context.read<GameLogic>().killed;
-                _setScreen(GameScreenEnum.playerKilled);
-              case (PrevoteResult.needVote):
-                _setScreen(GameScreenEnum.votes);
-            }
-          },
-          time: playerSpeechTime,
-        );
-      case GameScreenEnum.votes:
-        return Voting(
-          goNext: () {
-            switch (context.read<GameLogic>().votingResult()) {
-              case VotingResult.cancel:
-                _setScreen(GameScreenEnum.nightStarts);
-              case VotingResult.killed:
-                texts.number = context.read<GameLogic>().killed;
-                _setScreen(GameScreenEnum.playerKilled);
-              case VotingResult.revote:
-                _setScreen(GameScreenEnum.revote);
-              case VotingResult.voteKillAll:
-                _setScreen(GameScreenEnum.voteKillAll);
-            }
-          },
-        );
-      case GameScreenEnum.playerKilled:
-        return CenterButton(
-          onPressed: () => _setScreen(GameScreenEnum.nightStarts),
-          text: texts.playerKilled,
-        );
-      case GameScreenEnum.nightStarts:
-        return CenterButton(
-          onPressed: () => _setNextScreen,
-          text: texts.nightStarts,
-        );
-      case GameScreenEnum.revote:
-        context.read<GameLogic>().initRevote();
-        return Speeches(goNext: () => _setScreen(GameScreenEnum.votes), time: revoteSpeechTime, pushForVote: false);
-      case GameScreenEnum.voteKillAll:
-        return VoteKillAll(goNext: () => _setScreen(GameScreenEnum.nightStarts));
-    }
-  }
-}
-
 class Homescreen extends StatelessWidget {
-  final VoidCallback goNext;
-
-  const Homescreen({super.key, required this.goNext});
+  const Homescreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CenterButton(
-      onPressed: () {
-        context.read<GameLogic>().genRoles();
-        goNext();
-      },
-      text: texts.start,
+    return Scaffold(
+      body: CenterButton(
+        onPressed: () {
+          context.read<GameLogic>().genRoles();
+          Navigator.pushNamed(context, '/getRoles');
+        },
+        text: texts.start,
+      ),
     );
   }
 }
 
 class GetRoles extends StatefulWidget {
-  final VoidCallback goNext;
-  const GetRoles({super.key, required this.goNext});
+  const GetRoles({super.key});
 
   @override
   State<GetRoles> createState() => _GetRolesState();
@@ -174,7 +83,7 @@ class _GetRolesState extends State<GetRoles> {
 
   void _nextPlayer() {
     if (_playerNum == context.read<GameLogic>().playerCount) {
-      widget.goNext();
+      Navigator.pushNamed(context, '/mafiaTalk');
       return;
     }
     setState(() {
@@ -187,25 +96,33 @@ class _GetRolesState extends State<GetRoles> {
   Widget build(BuildContext context) {
     texts.number = _playerNum;
     if (!_show) {
-      return CenterButton(onPressed: _showRole, text: texts.getRole);
+      return Scaffold(body: CenterButton(onPressed: _showRole, text: texts.getRole));
     } else {
       texts.str = texts.role(context.read<GameLogic>().getRole(_playerNum));
-      return CenterButton(onPressed: _nextPlayer, text: texts.showRole);
+      return Scaffold(body: CenterButton(onPressed: _nextPlayer, text: texts.showRole));
     }
   }
 }
 
 class CenterButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String text;
+  final String? goNext;
 
-  const CenterButton({super.key, required this.onPressed, required this.text});
+  const CenterButton({super.key, this.onPressed, required this.text, this.goNext});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: () {
+          if (onPressed != null) {
+            onPressed!();
+          }
+          if (goNext != null) {
+            Navigator.pushNamed(context, goNext!);
+          }
+        },
         child: Container(
           width: 400,
           height: 300,
@@ -221,10 +138,11 @@ class CenterButton extends StatelessWidget {
 }
 
 class TimerWidget extends StatefulWidget {
-  const TimerWidget({super.key, required this.text, required this.time, required this.goNext, this.resetTimer=false});
+  const TimerWidget({super.key, required this.text, required this.time, this.goNext, this.onFinished, this.resetTimer=false});
   final String text;
   final int time;
-  final VoidCallback goNext;
+  final String? goNext;
+  final VoidCallback? onFinished;
   final bool resetTimer;
 
   @override
@@ -266,7 +184,12 @@ class _TimerWidgetState extends State<TimerWidget> {
             _secondsRemaining--;
           } else {
             _timer?.cancel();
-            widget.goNext();
+            if (widget.onFinished != null) {
+              widget.onFinished!();
+            }
+            if (widget.goNext != null) {
+              Navigator.pushNamed(context, widget.goNext!);
+            }
           }
         });
       }
@@ -299,8 +222,7 @@ class _TimerWidgetState extends State<TimerWidget> {
 }
 
 class Speeches extends StatefulWidget {
-  const Speeches({super.key, required this.goNext, required this.time, this.pushForVote = true});
-  final VoidCallback goNext;
+  const Speeches({super.key, required this.time, this.pushForVote = true});
   final int time;
   final bool pushForVote;
 
@@ -318,7 +240,19 @@ class _SpeechesState extends State<Speeches> {
       forVote = null;
     }
     if (!context.read<GameLogic>().changeSpeaker()) {
-      widget.goNext();
+      if (widget.pushForVote) {
+        switch (context.read<GameLogic>().prevote()) {
+          case (PrevoteResult.cancel):
+            Navigator.pushNamed(context, '/nightStarts');
+          case (PrevoteResult.killedOne):
+            Navigator.pushNamed(context, '/playerKilled');
+          case (PrevoteResult.needVote):
+            Navigator.pushNamed(context, '/votes');
+        }
+      } else {
+        Navigator.pushNamed(context, '/votes');
+      }
+      return;
     }
     setState(() {
       resetTimer = true;
@@ -336,13 +270,14 @@ class _SpeechesState extends State<Speeches> {
   Widget build(BuildContext context) {
     texts.number = context.read<GameLogic>().personToSpeak;
     texts.number2 = forVote;
-    return Center(
+    return Scaffold(
+      body: Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Talk(
             time: widget.time,
-            goNext: () => _nextPlayer(context),
+            onFinished: () => _nextPlayer(context),
             resetTimer: resetTimer,
           ),
           if (widget.pushForVote)
@@ -353,7 +288,7 @@ class _SpeechesState extends State<Speeches> {
             ),
         ],
       ),
-    );
+    ));
   }
 }
 
@@ -378,30 +313,25 @@ class NumberDropdown extends StatelessWidget {
   }
 }
 
-class Talk extends StatefulWidget {
-  const Talk({super.key, required this.time, required this.goNext, this.resetTimer=false});
+class Talk extends StatelessWidget {
+  const Talk({super.key, required this.time, this.onFinished, this.resetTimer=false});
   final int time;
   final bool resetTimer;
-  final VoidCallback goNext;
+  final VoidCallback? onFinished;
 
-  @override
-  State<Talk> createState() => _TalkState();
-}
-
-class _TalkState extends State<Talk> {
   @override
   Widget build(BuildContext context) {
     return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TimerWidget(
-            goNext: widget.goNext,
+            onFinished: onFinished,
             text: texts.playerSpeech,
-            time: widget.time,
-            resetTimer: widget.resetTimer,
+            time: time,
+            resetTimer: resetTimer,
           ),
           CenterButton(
-            onPressed: widget.goNext,
+            onPressed: onFinished,
             text: texts.endSpeech,
           ),
         ],
@@ -410,8 +340,7 @@ class _TalkState extends State<Talk> {
 }
 
 class Voting extends StatefulWidget {
-  const Voting({super.key, required this.goNext});
-  final VoidCallback goNext;
+  const Voting({super.key});
 
   @override
   State<Voting> createState() => _VotingState();
@@ -421,6 +350,19 @@ class _VotingState extends State<Voting> {
   int? _curVotes;
   Iterator<int>? _playersToVoteFor;
   bool running = false;
+
+  void _endVoting() {
+      switch (context.read<GameLogic>().votingResult()) {
+        case VotingResult.cancel:
+          Navigator.pushNamed(context, '/nightStarts');
+        case VotingResult.killed:
+          Navigator.pushNamed(context, '/playerKilled');
+        case VotingResult.revote:
+          Navigator.pushNamed(context, '/revote');
+        case VotingResult.voteKillAll:
+          Navigator.pushNamed(context, '/voteKillAll');
+      }
+  }
 
   void _changeVotesCount(int? value) {
     setState(() {
@@ -434,7 +376,7 @@ class _VotingState extends State<Voting> {
 
       if (context.read<GameLogic>().votesLeft == 0) {
         context.read<GameLogic>().setLeftCandidatesZeroVotes();
-        widget.goNext();
+        _endVoting();
         return;
       }
       if (_playersToVoteFor!.moveNext()) {
@@ -443,7 +385,7 @@ class _VotingState extends State<Voting> {
         });
       } else {
         context.read<GameLogic>().calculateVotesForLastPlayer();
-        widget.goNext();
+        _endVoting();
       }
     }
   }
@@ -457,7 +399,8 @@ class _VotingState extends State<Voting> {
     final playerNum = _playersToVoteFor!.current;
     texts.number = playerNum;
     texts.number2 = _curVotes;
-    return Column(
+    return Scaffold(
+      body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberDropdown(
@@ -469,13 +412,13 @@ class _VotingState extends State<Voting> {
         ),
         CenterButton(text: texts.next, onPressed: () => _nextCandidate(playerNum)),
       ],
-    );
+    ));
   }
 }
 
 class VoteKillAll extends StatefulWidget {
   const VoteKillAll({super.key, required this.goNext});
-  final VoidCallback goNext;
+  final String goNext;
 
   @override
   State<VoteKillAll> createState() => _VoteKillAllState();
@@ -493,7 +436,7 @@ class _VoteKillAllState extends State<VoteKillAll> {
           showKilled = true;
         });
       } else {
-        widget.goNext();
+        Navigator.pushNamed(context, widget.goNext);
       }
     }
   }
@@ -502,10 +445,11 @@ class _VoteKillAllState extends State<VoteKillAll> {
   Widget build(BuildContext context) {
     if (showKilled) {
       texts.numbers = context.read<GameLogic>().playersForVote;
-      return CenterButton(onPressed: widget.goNext, text: texts.multiplePlayersKilled);
+      return Scaffold(body: CenterButton(goNext: widget.goNext, text: texts.multiplePlayersKilled));
     }
     texts.number2 = _votesForKillAll;
-    return Column(
+    return Scaffold( 
+      body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberDropdown(
@@ -517,6 +461,6 @@ class _VoteKillAllState extends State<VoteKillAll> {
         ),
         CenterButton(onPressed: _onPressed, text: texts.next)
       ],
-    );
+    ));
   }
 }
