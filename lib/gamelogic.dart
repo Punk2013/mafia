@@ -23,6 +23,8 @@ class GameLogic with ChangeNotifier {
   final LinkedHashMap<int, int> _votes = LinkedHashMap();
   List<int> _playersWonPrevVoting = [];
 
+  int? _mafiaPick;
+
   Role getRole(int playerNum) {
     assert(playersAlive.contains(playerNum));
     return _players[playerNum]!;
@@ -72,6 +74,63 @@ class GameLogic with ChangeNotifier {
     } else {
       return _playersWonPrevVoting.iterator..moveNext();
     }
+  }
+
+  Iterator<int> playersToPick() {
+    late int firstToPick;
+    final playerIt = playersAlive.skipWhile((el) => el < _firstToSpeak);
+    if (playerIt.isEmpty) {
+      firstToPick = playersAlive.first;
+    } else {
+      firstToPick = playerIt.first;
+    }
+
+    return playersAlive
+        .skipWhile((el) => el != firstToPick)
+        .followedBy(playersAlive.takeWhile((el) => el != firstToPick))
+        .iterator
+      ..moveNext();
+  }
+
+  PickResult inputPick(int player, int playerPicked, [bool donIsPicking=false]) {
+    final role = _players[player];
+    final checkedRole = _players[playerPicked];
+    if (role == Role.civilian) {
+      return PickResult.none; 
+    }
+    if (donIsPicking) {
+      assert(role == Role.don);
+      if (checkedRole == Role.commissar) {
+        return PickResult.commissar;
+      }
+      return PickResult.passive;
+    }
+    if (role == Role.commissar) {
+      if (checkedRole == Role.mafia || checkedRole == Role.don) {
+        return PickResult.mafia;
+      }
+      return PickResult.civilian;
+    } else {
+      if (_mafiaPick == null) {
+        _mafiaPick = playerPicked;
+        return PickResult.none;
+      } 
+      if (_mafiaPick != playerPicked) {
+        _mafiaPick = 0;
+        return PickResult.none;
+      }
+      return PickResult.none;
+    }
+  }
+
+  bool get wasMurdered {
+    assert(_mafiaPick != null);
+    return _mafiaPick != 0;
+  }
+
+  int get personMurdered {
+    assert(_mafiaPick != null);
+    return _mafiaPick!;
   }
 
   int get voting {
@@ -125,6 +184,8 @@ class GameLogic with ChangeNotifier {
         _firstToSpeak = playerIt.first;
       }
     }
+
+    _mafiaPick = null;
   }
 
   void addForVote(int playerNum) {
@@ -223,3 +284,4 @@ class GameLogic with ChangeNotifier {
 
 enum VotingResult { cancel, killed, revote, voteKillAll }
 enum PrevoteResult { cancel, needVote, killedOne }
+enum PickResult {none, donPick, commissar, passive, mafia, civilian}
