@@ -42,7 +42,9 @@ enum GameScreenEnum {
   speeches,
   votes,
   playerKilled,
-  nightStarts;
+  nightStarts,
+  revote,
+  voteKillAll;
 
   GameScreenEnum get next {
     final values = GameScreenEnum.values;
@@ -110,9 +112,9 @@ class _GameState extends State<Game> {
                 texts.number = context.read<GameLogic>().killed;
                 _setScreen(GameScreenEnum.playerKilled);
               case VotingResult.revote:
-                _setScreen(GameScreenEnum.nightStarts); // placeholder
+                _setScreen(GameScreenEnum.revote);
               case VotingResult.voteKillAll:
-                _setScreen(GameScreenEnum.nightStarts); // placeholder
+                _setScreen(GameScreenEnum.voteKillAll);
             }
           },
         );
@@ -126,6 +128,11 @@ class _GameState extends State<Game> {
           onPressed: () => _setNextScreen,
           text: texts.nightStarts,
         );
+      case GameScreenEnum.revote:
+        context.read<GameLogic>().initRevote();
+        return Speeches(goNext: () => _setScreen(GameScreenEnum.votes), time: revoteSpeechTime, pushForVote: false);
+      case GameScreenEnum.voteKillAll:
+        return VoteKillAll(goNext: () => _setScreen(GameScreenEnum.nightStarts));
     }
   }
 }
@@ -292,9 +299,10 @@ class _TimerWidgetState extends State<TimerWidget> {
 }
 
 class Speeches extends StatefulWidget {
-  const Speeches({super.key, required this.goNext, required this.time});
+  const Speeches({super.key, required this.goNext, required this.time, this.pushForVote = true});
   final VoidCallback goNext;
   final int time;
+  final bool pushForVote;
 
   @override
   State<Speeches> createState() => _SpeechesState();
@@ -337,11 +345,12 @@ class _SpeechesState extends State<Speeches> {
             goNext: () => _nextPlayer(context),
             resetTimer: resetTimer,
           ),
-          NumberDropdown(
-            hint: texts.addForVote,
-            items: context.read<GameLogic>().playersNotForVote,
-            onChanged: _changeForVote,
-          ),
+          if (widget.pushForVote)
+            NumberDropdown(
+              hint: texts.addForVote,
+              items: context.read<GameLogic>().playersNotForVote,
+              onChanged: _changeForVote,
+            ),
         ],
       ),
     );
@@ -449,6 +458,7 @@ class _VotingState extends State<Voting> {
     texts.number = playerNum;
     texts.number2 = _curVotes;
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberDropdown(
           hint: texts.inputVotes,
@@ -458,6 +468,54 @@ class _VotingState extends State<Voting> {
           onChanged: _changeVotesCount,
         ),
         CenterButton(text: texts.next, onPressed: () => _nextCandidate(playerNum)),
+      ],
+    );
+  }
+}
+
+class VoteKillAll extends StatefulWidget {
+  const VoteKillAll({super.key, required this.goNext});
+  final VoidCallback goNext;
+
+  @override
+  State<VoteKillAll> createState() => _VoteKillAllState();
+}
+
+class _VoteKillAllState extends State<VoteKillAll> {
+  int? _votesForKillAll;
+  bool showKilled = false;
+
+  void _onPressed() {
+    if (_votesForKillAll != null) {
+      final res = context.read<GameLogic>().votingKillAllResult(_votesForKillAll!);
+      if (res == VotingResult.killed) {
+        setState(() {
+          showKilled = true;
+        });
+      } else {
+        widget.goNext();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (showKilled) {
+      texts.numbers = context.read<GameLogic>().playersForVote;
+      return CenterButton(onPressed: widget.goNext, text: texts.multiplePlayersKilled);
+    }
+    texts.number2 = _votesForKillAll;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        NumberDropdown(
+          hint: texts.whoForKillAll,
+          items: [for (var i = 0; i <= context.read<GameLogic>().voting; i++) i],
+          onChanged: (value) => setState(() {
+            _votesForKillAll = value;
+          }),
+        ),
+        CenterButton(onPressed: _onPressed, text: texts.next)
       ],
     );
   }

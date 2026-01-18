@@ -8,10 +8,12 @@ const buttonColor = Colors.grey;
 
 int mafiaTalkTime = 1;
 int playerSpeechTime = 60;
+int revoteSpeechTime = 30;
 
 abstract class Texts {
   int number = 1;
   int? number2;
+  List<int>? numbers;
   String str = '';
 
   String role(Role role);
@@ -29,6 +31,8 @@ abstract class Texts {
   String get next;
   String get playerKilled;
   String get nightStarts;
+  String get whoForKillAll;
+  String get multiplePlayersKilled;
 }
 
 class RuTexts extends Texts {
@@ -116,5 +120,19 @@ class RuTexts extends Texts {
   @override 
   String get nightStarts {
     return "Город засыпает";
+  }
+
+  @override
+  String get whoForKillAll {
+    if (number2 == null) {
+      return "Голосов за то, чтобы убрать всех";
+    } else {
+      return "Голосов за то, чтобы убрать всех(выбрано $number2)";
+    }
+  }
+
+  @override
+  String get multiplePlayersKilled {
+    return "Игроки ${numbers!.join(', ')} убиты";
   }
 }

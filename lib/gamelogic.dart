@@ -67,6 +67,10 @@ class GameLogic with ChangeNotifier {
     return _nextToSpeak!.current;
   }
 
+  void initRevote() {
+    _nextToSpeak = _playersWonPrevVoting.iterator..moveNext();
+  }
+
   bool changeSpeaker() {
     return _nextToSpeak!.moveNext();
   }
@@ -77,6 +81,7 @@ class GameLogic with ChangeNotifier {
 
   void kill(int playerNum) {
     _players.remove(playerNum);
+    debugPrint("$_players");
   }
 
   int get killed {
