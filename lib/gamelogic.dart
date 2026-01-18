@@ -204,6 +204,26 @@ class GameLogic with ChangeNotifier {
     debugPrint("$_playersForVote");
   }
 
+  GameStatus get gameStatus {
+    int civilians = 0;
+    int mafias = 0;
+    for (final role in _players.values) {
+      if (role == Role.civilian || role == Role.commissar) {
+        civilians++;
+      } else {
+        mafias++;
+      }
+    }
+    assert(civilians + mafias > 0);
+    if (mafias == 0) {
+      return GameStatus.civiliansWon;
+    } else if (mafias >= civilians) {
+      return GameStatus.mafiaWon;
+    } else {
+      return GameStatus.ongoing;
+    }
+  }
+
   List<int> get playersForVote {
     return _playersForVote;
   }
@@ -296,3 +316,4 @@ class GameLogic with ChangeNotifier {
 enum VotingResult { cancel, killed, revote, voteKillAll }
 enum PrevoteResult { cancel, needVote, killedOne }
 enum PickResult {none, donPick, commissar, notCommissar, mafia, notMafia}
+enum GameStatus{ongoing, civiliansWon, mafiaWon}

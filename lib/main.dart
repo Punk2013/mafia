@@ -50,7 +50,16 @@ class MafiaApp extends StatelessWidget {
           texts.numbers = context.read<GameLogic>().killed;
           return Scaffold(
             body: CenterButton(
-              onPressed: () => Navigator.pushReplacementNamed(context, '/killedSpeeches'),
+              onPressed: () {
+                final gameStatus = context.read<GameLogic>().gameStatus;
+                if (gameStatus == GameStatus.civiliansWon) {
+                  Navigator.pushReplacementNamed(context, '/civiliansWon');
+                } else if (gameStatus == GameStatus.mafiaWon) {
+                  Navigator.pushReplacementNamed(context, '/mafiaWon');
+                } else {
+                  Navigator.pushReplacementNamed(context, '/killedSpeeches');
+                }
+              },
               text: texts.playersKilled,
             ),
           );
@@ -60,8 +69,24 @@ class MafiaApp extends StatelessWidget {
         '/voteKillAll': (context) => VoteKillAll(),
         '/killedSpeeches': (context) => Speeches(time: killedSpeechTime, pushForVote: false, nextScreen: '/nightStarts'),
         '/nightPicking': (context) => NightPicking(),
-        '/playerMurdered': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/talk'), text: texts.playersKilled)),
-        '/talk': (context) => Scaffold(body: Talk(onFinished: () => Navigator.pushReplacementNamed(context, '/speeches'), time: killedSpeechTime))
+        '/playerMurdered': (context) => Scaffold(
+          body: CenterButton(
+            onPressed: () {
+              final gameStatus = context.read<GameLogic>().gameStatus;
+              if (gameStatus == GameStatus.civiliansWon) {
+                Navigator.pushReplacementNamed(context, '/civiliansWon');
+              } else if (gameStatus == GameStatus.mafiaWon) {
+                Navigator.pushReplacementNamed(context, '/mafiaWon');
+              } else {
+                Navigator.pushReplacementNamed(context, '/murderedTalk');
+              }
+            },
+            text: texts.playersKilled,
+          ),
+        ),
+        '/murderedTalk': (context) => Scaffold(body: Talk(onFinished: () => Navigator.pushReplacementNamed(context, '/speeches'), time: killedSpeechTime)),
+        '/civiliansWon': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/homescreen'), text: texts.civiliansWon)),
+        '/mafiaWon': (context) => Scaffold(body: CenterButton(onPressed: () => Navigator.pushReplacementNamed(context, '/homescreen'), text: texts.mafiaWon)),
       },
     );
   }

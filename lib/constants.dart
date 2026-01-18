@@ -39,6 +39,8 @@ abstract class Texts {
   String get isNotCommissar;
   String get isMafia;
   String get isNotMafia;
+  String get civiliansWon;
+  String get mafiaWon;
 }
 
 class RuTexts extends Texts {
@@ -175,5 +177,13 @@ class RuTexts extends Texts {
   @override
   String get isNotMafia {
     return "Игрок $number не мафия";
+  }
+  @override
+  String get civiliansWon {
+    return "Победа мирных";
+  }
+  @override
+  String get mafiaWon {
+    return "Победа мафии";
   }
 }
