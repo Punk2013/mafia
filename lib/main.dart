@@ -377,16 +377,24 @@ class _NightPickingState extends State<NightPicking> {
         _donIsPicking = true;
       case PickResult.commissar:
         texts.number = _picked!;
-        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isCommissar, onPressed: () => Navigator.pop(context)))));
+        late OverlayEntry overlayEntry;
+        overlayEntry = OverlayEntry(builder: (context) => Scaffold(body: CenterButton(text: texts.isCommissar, onPressed: () => overlayEntry.remove())));
+        Overlay.of(context).insert(overlayEntry);
       case PickResult.notCommissar:
         texts.number = _picked!;
-        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isNotCommissar, onPressed: () => Navigator.pop(context)))));
+        late OverlayEntry overlayEntry;
+        overlayEntry = OverlayEntry(builder: (context) => Scaffold(body: CenterButton(text: texts.isNotCommissar, onPressed: () => overlayEntry.remove())));
+        Overlay.of(context).insert(overlayEntry);
       case PickResult.mafia:
         texts.number = _picked!;
-        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isMafia, onPressed: () => Navigator.pop(context)))));
+        late OverlayEntry overlayEntry;
+        overlayEntry = OverlayEntry(builder: (context) => Scaffold(body: CenterButton(text: texts.isMafia, onPressed: () => overlayEntry.remove())));
+        Overlay.of(context).insert(overlayEntry);
       case PickResult.notMafia:
         texts.number = _picked!;
-        Navigator.push(context,  MaterialPageRoute(builder: (context) => Scaffold(body: CenterButton(text: texts.isNotMafia, onPressed: () => Navigator.pop(context)))));
+        late OverlayEntry overlayEntry;
+        overlayEntry = OverlayEntry(builder: (context) => Scaffold(body: CenterButton(text: texts.isNotMafia, onPressed: () => overlayEntry.remove())));
+        Overlay.of(context).insert(overlayEntry);
     }
     if (_donIsPicking) {
       setState(() {
