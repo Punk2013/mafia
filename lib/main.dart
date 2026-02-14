@@ -295,10 +295,12 @@ class _VotingState extends State<Voting> {
     final playerNum = _playersToVoteFor!.current;
     texts.number = playerNum;
     texts.number2 = _curVotes;
+    texts.numbers = context.read<GameLogic>().playersForVote;
     return Scaffold(
       body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        CenterButton(text: texts.forVote, onPressed: () => {}),
         NumberDropdown(
           hint: texts.inputVotes,
           items: [

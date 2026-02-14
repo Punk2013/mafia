@@ -6,8 +6,8 @@ const double fontsizeLarge = 24;
 const double spacing = 5.0;
 const buttonColor = Colors.grey;
 
-int mafiaTalkTime = 60;
-int commissarLookTime = 20;
+int mafiaTalkTime = 6;
+int commissarLookTime = 2;
 int fallAsleepTime = 5;
 int playerSpeechTime = 60;
 int killedSpeechTime = 60;
@@ -33,6 +33,7 @@ abstract class Texts {
   String get playerSpeech;
   String get endSpeech;
   String get addForVote;
+  String get forVote;
   String get inputVotes;
   String get next;
   String get playersKilled;
@@ -124,6 +125,11 @@ class RuTexts extends Texts {
     } else {
       return "Выставить(выбран $number2)";
     }
+  }
+
+  @override
+  String get forVote {
+      return "Выставлены ${numbers!.join(', ')}";
   }
 
   @override
