@@ -6,7 +6,9 @@ const double fontsizeLarge = 24;
 const double spacing = 5.0;
 const buttonColor = Colors.grey;
 
-int mafiaTalkTime = 1;
+int mafiaTalkTime = 60;
+int commissarLookTime = 20;
+int fallAsleepTime = 5;
 int playerSpeechTime = 60;
 int killedSpeechTime = 60;
 int revoteSpeechTime = 30;
@@ -24,6 +26,9 @@ abstract class Texts {
   String get getRole;
   String get showRole;
   String get mafiaTalk;
+  String get mafiaFallsAsleep;
+  String get commissarLook;
+  String get commissarFallsAsleep;
   String get wakeUp;
   String get playerSpeech;
   String get endSpeech;
@@ -80,6 +85,21 @@ class RuTexts extends Texts {
   @override
   String get mafiaTalk {
     return "Мафии договариваются";
+  }
+
+  @override
+  String get mafiaFallsAsleep {
+    return "Мафия засыпает";
+  }
+
+  @override
+  String get commissarLook {
+    return "Комиссар осматривает игровой стол";
+  }
+
+  @override
+  String get commissarFallsAsleep {
+    return "Комиссар засыпает";
   }
 
   @override

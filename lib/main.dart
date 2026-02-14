@@ -26,7 +26,10 @@ class MafiaApp extends StatelessWidget {
       routes: {
         '/homescreen': (context) => Homescreen(),
         '/getRoles': (context) => GetRoles(),
-        '/mafiaTalk': (context) => Scaffold(body: TimerWidget(onFinished: () => Navigator.pushReplacementNamed(context, '/wakeUp'), text: texts.mafiaTalk, time: mafiaTalkTime)),
+        '/mafiaTalk': (context) => Scaffold(body: TimerWidget(onFinished: () => Navigator.pushReplacementNamed(context, '/mafiaFallsAsleep'), text: texts.mafiaTalk, time: mafiaTalkTime)),
+        '/mafiaFallsAsleep': (context) => Scaffold(body: TimerWidget(onFinished: () => Navigator.pushReplacementNamed(context, '/commissarLook'), text: texts.mafiaFallsAsleep, time: fallAsleepTime)),
+        '/commissarLook': (context) => Scaffold(body: TimerWidget(onFinished: () => Navigator.pushReplacementNamed(context, '/commissarFallsAsleep'), text: texts.commissarLook, time: commissarLookTime)),
+        '/commissarFallsAsleep': (context) => Scaffold(body: TimerWidget(onFinished: () => Navigator.pushReplacementNamed(context, '/wakeUp'), text: texts.commissarFallsAsleep, time: fallAsleepTime)),
         '/wakeUp': (context) => Scaffold(
           body: CenterButton(
             onPressed: () {

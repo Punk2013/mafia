@@ -178,6 +178,18 @@ class GameLogic with ChangeNotifier {
         activeAssigned++;
       }
     }
+
+    // debug
+    // _players[1] = Role.civilian;
+    // _players[2] = Role.civilian;
+    // _players[3] = Role.civilian;
+    // _players[4] = Role.civilian;
+    // _players[5] = Role.commissar;
+    // _players[6] = Role.civilian;
+    // _players[7] = Role.don;
+    // _players[8] = Role.mafia;
+    // _players[9] = Role.civilian;
+    // _players[10] = Role.mafia;
     debugPrint("$_players");
   }
 
