@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'dart:math';
+import 'package:mafia/constants.dart';
 
 enum Role {
   civilian,
@@ -11,9 +11,6 @@ enum Role {
 }
 
 class GameLogic with ChangeNotifier {
-  final int playerCount = 10;
-  final int activeCount = 4;
-
   final LinkedHashMap<int, Role> _players = LinkedHashMap();
 
   int _currentDay = 0;
@@ -34,7 +31,6 @@ class GameLogic with ChangeNotifier {
     return _playersForVote.take(_playersForVote.length - 1).iterator
       ..moveNext();
   }
-
 
   PrevoteResult prevote() {
     if (playersForVote.isEmpty) {
@@ -158,25 +154,9 @@ class GameLogic with ChangeNotifier {
   }
 
   void genRoles() {
-    final rand = Random();
-    for (int i = 1; i <= playerCount; i++) {
-      _players[i] = Role.civilian;
-    }
-
-    var activeAssigned = 0;
-    while (activeAssigned < activeCount) {
-      var num = rand.nextInt(playerCount) + 1;
-
-      if (activeAssigned == 0 && _players[num] == Role.civilian) {
-        _players[num] = Role.commissar;
-        activeAssigned++;
-      } else if (activeAssigned == 1 && _players[num] == Role.civilian) {
-        _players[num] = Role.don;
-        activeAssigned++;
-      } else if (_players[num] == Role.civilian) {
-        _players[num] = Role.mafia;
-        activeAssigned++;
-      }
+    final rolesShuffled = List<Role>.from(defaultRoles)..shuffle();
+    for (int i = 1; i <= rolesShuffled.length; i++) {
+      _players[i] = rolesShuffled[i - 1];
     }
 
     // debug

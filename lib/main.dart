@@ -130,7 +130,7 @@ class _GetRolesState extends State<GetRoles> {
   }
 
   void _nextPlayer() {
-    if (_playerNum == context.read<GameLogic>().playerCount) {
+    if (_playerNum == context.read<GameLogic>().playersAlive.length) {
       Navigator.pushReplacementNamed(context, '/mafiaTalk');
       return;
     }

@@ -13,6 +13,9 @@ int playerSpeechTime = 60;
 int killedSpeechTime = 60;
 int revoteSpeechTime = 30;
 
+const List<Role> defaultRoles = [Role.don, Role.mafia, Role.mafia, Role.commissar, Role.civilian,
+                    Role.civilian, Role.civilian, Role.civilian, Role.civilian, Role.civilian];
+
 abstract class Texts {
   int number = 1;
   int? number2;
@@ -173,18 +176,18 @@ class RuTexts extends Texts {
   @override
   String get pickPlayer {
     if (number2 == null) {
-      return "Игрок $number, выберете одного игрока";
+      return "Игрок $number, выберите одного игрока";
     } else {
-      return "Игрок $number, выберете одного игрока(выбран $number2)";
+      return "Игрок $number, выберите одного игрока(выбран $number2)";
     }
   }
 
   @override
   String get checkForCommissar {
     if (number2 == null) {
-      return "Выберете игрока для проверки";
+      return "Выберите игрока для проверки";
     } else {
-      return "Выберете игрока для проверки(выбран $number2)";
+      return "Выберите игрока для проверки(выбран $number2)";
     }
   }
 
