@@ -6,9 +6,9 @@ const double fontsizeLarge = 24;
 const double spacing = 5.0;
 const buttonColor = Colors.grey;
 
-int mafiaTalkTime = 6;
-int commissarLookTime = 2;
-int fallAsleepTime = 5;
+int mafiaTalkTime = 1;
+int commissarLookTime = 1;
+int fallAsleepTime = 1;
 int playerSpeechTime = 60;
 int killedSpeechTime = 60;
 int revoteSpeechTime = 30;
@@ -50,6 +50,10 @@ abstract class Texts {
   String get isNotMafia;
   String get civiliansWon;
   String get mafiaWon;
+}
+
+abstract class Audio {
+  String get wakeUp;
 }
 
 class RuTexts extends Texts {
@@ -214,5 +218,11 @@ class RuTexts extends Texts {
   @override
   String get mafiaWon {
     return "Победа мафии";
+  }
+}
+
+class DefaultRuAudio extends Audio {
+  @override String get wakeUp {
+    return "audio/ru1/city_wakes_up.mp3";
   }
 }

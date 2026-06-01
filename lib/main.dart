@@ -6,6 +6,7 @@ import 'common_widgets.dart';
 
 // temporary
 final Texts texts = RuTexts();
+final Audio audio = DefaultRuAudio();
 
 void main() {
   final game = GameLogic();
@@ -45,6 +46,7 @@ class MafiaApp extends StatelessWidget {
               Navigator.pushReplacementNamed(context, '/speeches');
             },
             text: texts.wakeUp,
+            audio: audio.wakeUp,
           ),
         ),
         '/speeches': (context) => Speeches(time: playerSpeechTime),

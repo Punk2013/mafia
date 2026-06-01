@@ -2,25 +2,46 @@ import 'main.dart';
 import 'package:flutter/material.dart';
 import 'constants.dart';
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 
-class CenterButton extends StatelessWidget {
+class CenterButton extends StatefulWidget {
   final VoidCallback onPressed;
   final String text;
+  final String? audio;
 
-  const CenterButton({super.key, required this.onPressed, required this.text});
+  const CenterButton({super.key, required this.onPressed, required this.text, this.audio});
 
   @override
+  State<CenterButton> createState() => _CenterButtonState();
+}
+
+class _CenterButtonState extends State<CenterButton> {
+  var player = AudioPlayer();
+
+  Future<void> playAudio() async {
+    if (widget.audio != null) {
+      await player.play(AssetSource(widget.audio!));
+    }
+  }
+  @override
+  void dispose() {
+    player.stop();
+    player.dispose();
+    super.dispose();
+  }
+  @override
   Widget build(BuildContext context) {
-    return Center(
+      playAudio();
+      return Center(
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: widget.onPressed,
         child: Container(
           width: 400,
           height: 300,
           alignment: Alignment.center,
           color: Colors.grey,
           child: Center(
-            child: Text(text, style: const TextStyle(fontSize: fontsize)),
+            child: Text(widget.text, style: const TextStyle(fontSize: fontsize)),
           ),
         ),
       ),
